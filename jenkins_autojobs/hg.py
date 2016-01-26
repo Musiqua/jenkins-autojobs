@@ -86,18 +86,21 @@ def create_job(ref, template, config, ref_config):
 
     try:
         scm_el = job_obj.xml.xpath('scm[@class="hudson.plugins.mercurial.MercurialSCM"]')[0]
+        # Set branch.
+        el = scm_el.xpath('//branch')
+
+        # Newer version of the jenkins hg plugin store the branch in the
+        # 'revision' element.
+        if not el:
+            el = scm_el.xpath('//revision')
+        el[0].text = ref
     except IndexError:
-        msg = 'Template job %s is not configured to use Mercurial as an SCM'
-        raise RuntimeError(msg % template)  # :bug:
-
-    # Set branch.
-    el = scm_el.xpath('//branch')
-
-    # Newer version of the jenkins hg plugin store the branch in the
-    # 'revision' element.
-    if not el:
-        el = scm_el.xpath('//revision')
-    el[0].text = ref
+        if config['fail-on-no-scm']:
+            msg = 'Template job %s is not configured to use Mercurial as an SCM'
+            raise RuntimeError(msg % template)
+        else:
+            msg = 'No SCM configured for job in template job %s'
+            print(msg % template)
 
     # Set the state of the newly created job.
     job_obj.set_state(ref_config['enable'])

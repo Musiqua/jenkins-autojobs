@@ -27,6 +27,11 @@ scm-password: None  # optional
 template: new-job-template
 
 #-----------------------------------------------------------------------------
+# Fail the creation if the template job has no SCM setup. Can be useful to 
+# disable for complex build chains. Defaults to 'true'.
+fail-on-no-scm: true
+
+#-----------------------------------------------------------------------------
 # Character with which to replace '/' in branch names.
 namesep: '-'
 #-----------------------------------------------------------------------------

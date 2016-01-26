@@ -100,17 +100,18 @@ def create_job(branch, template, config, branch_config):
 
     try:
         scm_el = job_obj.xml.xpath('scm[@class="hudson.scm.SubversionSCM"]')[0]
+        # set branch
+        el = scm_el.xpath('//remote')[0]
+        el.text = os.path.join(config['repo'], branch)
+
+        # Set the branch that git plugin will locally checkout to.
+        el = scm_el.xpath('//local')[0]
+        el.text = '.'
     except IndexError:
-        msg = 'Template job %s is not configured to use SVN as an SCM'
-        raise RuntimeError(msg % template)  # :bug:
-
-    # set branch
-    el = scm_el.xpath('//remote')[0]
-    el.text = os.path.join(config['repo'], branch)
-
-    # Set the branch that git plugin will locally checkout to.
-    el = scm_el.xpath('//local')[0]
-    el.text = '.'
+        if config['fail-on-no-scm']:
+            raise RuntimeError('Template job is not configured to use Mercurial as an SCM')
+        else:
+            print('No SCM configured for job in template job')
 
     # Set the state of the newly created job.
     job_obj.set_state(branch_config['enable'])
